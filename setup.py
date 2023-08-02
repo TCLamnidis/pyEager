@@ -8,7 +8,7 @@ setup(
   author = 'Thiseas C. Lamnidis',
   author_email = 'thisseass@gmail.com',
   url = 'https://github.com/TCLamnidis/pyEager',
-  download_url = 'https://github.com/TCLamnidis/pyEager/archive/v_01.tar.gz',
+  download_url = 'https://github.com/TCLamnidis/pyEager/archive/refs/tags/0.1.0.tar.gz',
   keywords = ['python', 'pandas', 'nf-core', 'eager', 'nf-core/eager', 'ancient DNA' ],
   python_requires=">=3.6",
   install_requires=[
