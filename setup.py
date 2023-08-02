@@ -5,6 +5,7 @@ setup(
   version = '0.1.0',
   license='MIT',
   description = 'A simple package to read in eager results.',
+  long_description=open('README.md').read(),
   author = 'Thiseas C. Lamnidis',
   author_email = 'thisseass@gmail.com',
   url = 'https://github.com/TCLamnidis/pyEager',
