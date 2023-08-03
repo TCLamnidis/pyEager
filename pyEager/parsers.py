@@ -126,3 +126,17 @@ def parse_eager_tsv(tsv_path):
     data=pd.read_table(f, sep="\t")
   
   return data
+
+def parse_general_stats_table(general_stats_path):
+  """Parse the general_stats_table.txt output of MultiQC into a pandas DataFrame.
+
+  Args:
+      general_stats_path (string): The path to the `general_stats_table.txt` TSV file.
+
+  Returns:
+      pandas.DataFrame: A data frame containing the data of the TSV.
+  """
+  with open(general_stats_path) as f:
+    data=pd.read_table(f, sep="\t")
+  
+  return data
