@@ -13,7 +13,8 @@ A simple package to read in eager results.
     - `parse_snp_coverage_json()`: Read in the information in a single SNP coverage JSON file.
  - `parse_sexdeterrmine_json()`: Reads in the Sexdeterrmine output JSON into a dataframe.
  - `parse_nuclear_contamination_json()`: Reads in the nuclear contamination output JSON into a dataframe.
- - `parse_eager_tsv()`: Reads in the eager input TSV into a dataframe.
+ - `parse_eager_tsv()`: Reads in the eager input TSV into a dataframe, with additional columns specifying what merging steps took place.
+ - `infer_merged_bam_names()`: Infer the names of eager output files based on the merging steps that took place.
  - `parse_general_stats_table()`: Reads in the general stats table output of MultiQC into a dataframe.
 
 ## Installation
