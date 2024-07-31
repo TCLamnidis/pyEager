@@ -230,25 +230,31 @@ def infer_merged_bam_names(tsv_data, skip_deduplication=None, run_trim_bam=None)
     ## TODO Implement inference of names when deduplication is skipped.
     ## Inner functions that applies conditional logic to infer the merged BAM names
     ## Get initial merge BAM name
-    def initial_bam_name(row, run_trim_bam):
-        ## No initial merge
-        if not row["initial_merge"] and not run_trim_bam:
-            return f"{row['Library_ID']}_rmdup.bam"
-        elif not row["initial_merge"] and run_trim_bam:
-            return f"{row['Library_ID']}.trimmed.bam"
-        ## Initial merge
-        elif row["initial_merge"] and not run_trim_bam:
+    def initial_bam_name(row):
+        ## Initial library merge happens prior to trimming, so trimming option can be ignored.
+        if row["initial_merge"]:
+            ## The _rmdup suffix is always added to the merged bam name in `library_merge` step, regardless of deduplication
             return f"{row['Sample_Name']}_udg{row['UDG_Treatment']}_libmerged_rmdup.bam"
-        elif row["initial_merge"] and run_trim_bam:  ## i.e. else, but more explicit
-            return (
-                f"{row['Sample_Name']}_udg{row['UDG_Treatment']}_libmerged.trimmed.bam"
-            )
+        else:
+            ## No library merging happened, so the BAM name is based on the individual library
+            if skip_deduplication:
+                return f"{row['Library_ID']}_{row['SeqType']}.mapped.bam"
+            else:
+                return f"{row['Library_ID']}_rmdup.bam"
 
     ## Get additional merge BAM name
-    def additional_bam_name(row):
+    def additional_bam_name(row, run_trim_bam):
         ## No additional merge
         if not row["additional_merge"]:
-            return row["initial_bam_name"]
+            ## If trimming was not run, the initial BAM name is the same BAM name
+            if not run_trim_bam:
+                return row["initial_bam_name"]
+            elif row["initial_merge"]:
+                ## If trimming was run, the trimmed bam is the "additional" bam. Libmerged if multiple libraries.
+                ## The trimmed bam has the order of the udg and libmerged suffixes reversed for some reason.
+                return f"{row['Sample_Name']}_libmerged_udg{row['UDG_Treatment']}.trimmed.bam"
+            else:
+                return f"{row['Library_ID']}_udg{row['UDG_Treatment']}.trimmed.bam"
         ## Additional merge
         elif row["additional_merge"]:
             return f"{row['Sample_Name']}_libmerged_add.bam"
@@ -261,10 +267,15 @@ def infer_merged_bam_names(tsv_data, skip_deduplication=None, run_trim_bam=None)
 
     ## Add columns with inferred BAM names
     tsv_data["initial_bam_name"] = tsv_data.apply(
-        initial_bam_name, axis=1, run_trim_bam=run_trim_bam
+        initial_bam_name, axis=1
     )
-    tsv_data["additional_bam_name"] = tsv_data.apply(additional_bam_name, axis=1)
-    tsv_data["sexdet_bam_name"] = tsv_data.apply(sexdet_bam_name, axis=1)
+    tsv_data["additional_bam_name"] = tsv_data.apply(
+        additional_bam_name,
+        axis=1, run_trim_bam=run_trim_bam
+    )
+    tsv_data["sexdet_bam_name"] = tsv_data.apply(
+        sexdet_bam_name, axis=1
+    )
 
     return tsv_data
 
