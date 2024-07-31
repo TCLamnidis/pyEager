@@ -1,4 +1,4 @@
-__version__ = "0.1.4.2"
+__version__ = "0.1.4.3"
 from pyEager.parsers import (
     parse_sexdeterrmine_json,
     parse_damageprofiler_json,

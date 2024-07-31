@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-VERSION = "0.1.4.2"
+VERSION = "0.1.4.3"
 setup(
     name="pyEager",
     packages=["pyEager"],
