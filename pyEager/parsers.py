@@ -280,3 +280,76 @@ def parse_general_stats_table(general_stats_path):
         data = pd.read_table(f, sep="\t")
 
     return data
+
+
+def parse_mapdamage_results(mapdamage_result_dir, results_basename, standardise_colnames=False):
+    """Parse the mapDamage results into a pandas DataFrame.
+
+    Args:
+        mapdamage_result_dir (string): The path to the mapDamage results directory for a single BAM.
+
+    Returns:
+        dict: A dictionary containing the read length information and damage frequency information from mapDamage, each as its own pandas.DataFrame.
+    """
+    mapdamage_outputs = {
+        ## "file_name" : "category_name"
+        # "misincorporation.txt",
+        # "dnacomp.txt",
+        "3pGtoA_freq.txt": "dmg_3p",
+        "lgdistribution.txt": "lendist",
+        "5pCtoT_freq.txt": "dmg_5p",
+    }
+    mapdamage_results = {}
+    for file in mapdamage_outputs:
+        with open(f"{mapdamage_result_dir}/{file}") as f:
+            if file.endswith("freq.txt"):
+                file_results = pd.read_table(f, sep="\t").drop(columns="pos")
+                ## Standardise column names to match the ones from damageprofiler parser
+                if standardise_colnames:
+                    file_results = file_results.rename(
+                        columns={"3pG>A": "dmg_3p", "5pC>T": "dmg_5p"},
+                    )
+                mapdamage_results[mapdamage_outputs[file]] = file_results
+            elif file == "lgdistribution.txt":
+                ## Provide names explicitly because the column names sometimes include trailing spaces
+                lendist = pd.read_table(
+                    f,
+                    sep="\t",
+                    comment="#",
+                    header=0,
+                    names=["Std", "Length", "Occurences"],
+                ).sort_values(by="Length")
+                file_results_fw = (
+                    lendist[lendist["Std"] == "+"].drop(columns="Std").set_index("Length")
+                )
+                file_results_rv = (
+                    lendist[lendist["Std"] == "-"].drop(columns="Std").set_index("Length")
+                )
+                ## Standardise column names to match the ones from damageprofiler parser
+                if standardise_colnames:
+                    file_results_fw = file_results_fw.rename(
+                        columns={"Occurences": "n"},
+                        errors="raise",
+                    ).rename_axis("length")
+                    file_results_rv = file_results_rv.rename(
+                        columns={"Occurences": "n"},
+                        errors="raise",
+                    ).rename_axis("length")
+
+                mapdamage_results[mapdamage_outputs[file] + "_fw"] = file_results_fw
+                mapdamage_results[mapdamage_outputs[file] + "_rv"] = file_results_rv
+    with open(f"{mapdamage_result_dir}/lgdistribution.txt") as f:
+        for line in f:
+            ## get the mapDamage version from the first line of the lgdistribution.txt file
+            mdg_version = line.strip().split()[-1]
+            break
+        metadata = {
+            "tool_name": ["mapDamage"],
+            "version": [mdg_version],
+            "sample_name": [results_basename],
+        }
+        mapdamage_results["metadata"] = pd.DataFrame.from_dict(
+            metadata, orient="index", columns=["value"]
+        )
+
+    return mapdamage_results
