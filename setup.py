@@ -8,6 +8,7 @@ setup(
     license="MIT",
     description="A simple package to read in eager results.",
     long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     author="Thiseas C. Lamnidis",
     author_email="thisseass@gmail.com",
     url="https://github.com/TCLamnidis/pyEager",
