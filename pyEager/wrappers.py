@@ -1,6 +1,7 @@
 from pyEager import parsers
 import pandas as pd
 
+
 def collect_damageprofiler_results(damageprofiler_json_paths):
     """Collects damageprofiler results from multiple JSON files into a dictionary with the key for each dataset being the sample_name.
 
@@ -19,6 +20,28 @@ def collect_damageprofiler_results(damageprofiler_json_paths):
         data = parsers.parse_damageprofiler_json(json_path)
         collected_damageprofiler_results[data["metadata"].loc["sample_name", "value"]] = data
     return collected_damageprofiler_results
+
+
+def collect_mapdamage_results(mapdamage_result_dir_paths, standardise_colnames=False):
+    """Collects results from multiple mapDamage2 result directories a dictionary with the key for each dataset being the sample_name.
+
+    Args:
+        mapdamage_result_dir_paths (list): A list of paths to the mapDamage2 result directories.
+
+    Returns:
+        dict: A dictionary of data frames with the key for each dataset being the sample_name.
+    """
+    if not isinstance(mapdamage_result_dir_paths, list):
+        raise ValueError("Input must be a list.")
+
+    collected_mapdamage_results = {}
+
+    for dirpath in mapdamage_result_dir_paths:
+        sample_name = dirpath.split("/")[-1].replace("results_", "")
+        data = parsers.parse_mapdamage_results(dirpath, sample_name, standardise_colnames)
+        collected_mapdamage_results[data["metadata"].loc["sample_name", "value"]] = data
+    return collected_mapdamage_results
+
 
 def compile_endogenous_table(endorspy_json_paths):
     """Compile endorspy results from multiple JSON files into a single pandas DataFrame.
