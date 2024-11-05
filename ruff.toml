@@ -1,0 +1,17 @@
+# Assume Python 3.9
+# target-version = "py39"
+
+# Allow lines to be as long as 100.
+line-length = 100
+indent-width = 4
+
+[format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+docstring-code-line-length = 40
+# Use `\n` line endings for all files
+line-ending = "lf"
+
+[lint]
+select = ["ALL"]

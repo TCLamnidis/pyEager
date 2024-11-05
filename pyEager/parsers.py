@@ -62,17 +62,13 @@ def parse_damageprofiler_json(json_path):
         data = load(f)
         for attr in damageprofiler_json_attributes:
             if attr.startswith("dmg_"):
-                damage_profiler_results[attr] = pd.DataFrame(
-                    data=data[attr], columns=[attr]
-                )
+                damage_profiler_results[attr] = pd.DataFrame(data=data[attr], columns=[attr])
             elif attr.startswith("lendist_"):
                 damage_profiler_results[attr] = pd.DataFrame.from_dict(
                     data[attr], orient="index", columns=["count"]
                 )
                 damage_profiler_results[attr].index.name = "length"
-                damage_profiler_results[attr].sort_index(
-                    axis=0, ascending=True, inplace=True
-                )
+                damage_profiler_results[attr].sort_index(axis=0, ascending=True, inplace=True)
             elif attr == "metadata":
                 damage_profiler_results[attr] = pd.DataFrame.from_dict(
                     data[attr], orient="index", columns=["value"]
@@ -162,9 +158,7 @@ def parse_eager_tsv(tsv_path):
         .groupby(["Sample_Name", "Strandedness", "UDG_Treatment"])
         .nunique()
     )
-    merged_after_dedup["initial_merge"] = merged_after_dedup["Library_ID"].apply(
-        lambda f: f > 1
-    )
+    merged_after_dedup["initial_merge"] = merged_after_dedup["Library_ID"].apply(lambda f: f > 1)
     merged_after_dedup.drop(columns=["Library_ID"], inplace=True)
 
     ## Next, merging of libraries across UDG-treatment that share Sample/Strandedness
@@ -174,9 +168,9 @@ def parse_eager_tsv(tsv_path):
         .groupby(["Sample_Name", "Strandedness"])
         .nunique()
     )
-    merged_after_trimming["additional_merge"] = merged_after_trimming[
-        "UDG_Treatment"
-    ].apply(lambda f: f > 1)
+    merged_after_trimming["additional_merge"] = merged_after_trimming["UDG_Treatment"].apply(
+        lambda f: f > 1
+    )
     merged_after_trimming.drop(columns=["UDG_Treatment"], inplace=True)
 
     ## Finally, check if there are any samples have in multiple strandedness values
@@ -261,21 +255,14 @@ def infer_merged_bam_names(tsv_data, skip_deduplication=None, run_trim_bam=None)
 
     ## Get sex determination BAM name
     def sexdet_bam_name(row):
-        return row["additional_bam_name"].replace(
-            ".bam", f"_{row['Strandedness']}strand.bam"
-        )
+        return row["additional_bam_name"].replace(".bam", f"_{row['Strandedness']}strand.bam")
 
     ## Add columns with inferred BAM names
-    tsv_data["initial_bam_name"] = tsv_data.apply(
-        initial_bam_name, axis=1
-    )
+    tsv_data["initial_bam_name"] = tsv_data.apply(initial_bam_name, axis=1)
     tsv_data["additional_bam_name"] = tsv_data.apply(
-        additional_bam_name,
-        axis=1, run_trim_bam=run_trim_bam
+        additional_bam_name, axis=1, run_trim_bam=run_trim_bam
     )
-    tsv_data["sexdet_bam_name"] = tsv_data.apply(
-        sexdet_bam_name, axis=1
-    )
+    tsv_data["sexdet_bam_name"] = tsv_data.apply(sexdet_bam_name, axis=1)
 
     return tsv_data
 
