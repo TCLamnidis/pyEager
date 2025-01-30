@@ -1,5 +1,28 @@
 from json import load
 import pandas as pd
+import numpy as np
+
+## Helper statistics function provided by Konstantinos Siozios
+def weighted_distribution_stats(df, val, weight):
+    """small function to calculate the weighted mean, median, and std from a dataframe
+
+    Args:
+        df (pandas.DataFrame): The dataframe to calculate the statistics from
+        val (string): The values to calculate the statistics for
+        weight (string): The weights of the values
+
+    Returns:
+        pd.Dataframe(float64): A dataframe containing the weighted std, median, and mean of the values
+    """
+    df_sorted = df.sort_values(val)
+    cumsum = df_sorted[weight].cumsum()
+    cutoff = df_sorted[weight].sum() / 2.
+    median = df_sorted[cumsum >= cutoff][val].iloc[0]
+    mean = np.average(df_sorted[val], weights=df_sorted[weight])
+    std = np.sqrt(np.average((df_sorted[val]-mean)**2, weights=df_sorted[weight]))
+    results=pd.DataFrame({'std':[std],'median':[median],'mean':[mean]}, dtype='float64')
+    return (results)
+
 
 #### A set of functions to parse the JSON output of nf-core/eager modules into pandas DataFrames ####
 
@@ -335,9 +358,20 @@ def parse_mapdamage_results(mapdamage_result_dir, results_basename, standardise_
                         columns={"Occurences": "n"},
                         errors="raise",
                     ).rename_axis("length")
-
                 mapdamage_results[mapdamage_outputs[file] + "_fw"] = file_results_fw
                 mapdamage_results[mapdamage_outputs[file] + "_rv"] = file_results_rv
+                
+                ## Generate  summary stats to mimic damageprofiler output json.
+                x = lendist.pivot(columns = "Std", index="Length").fillna(0)
+                ## Create column with the total occurrences across both strands
+                x['Total_Occurrences']=x.sum(axis=1, numeric_only=True)
+                ## Filter down to only the two columns (also turn "Length" into column from an index)
+                x=x.reset_index()[['Length', 'Total_Occurrences']]
+                summary_stats = weighted_distribution_stats(
+                    x, "Length", "Total_Occurrences"
+                ).rename(columns={"mean":"mean_readlength"})
+                mapdamage_results["summary_stats"] = summary_stats
+    ## Collect version info from lgdistribution.txt
     with open(f"{mapdamage_result_dir}/lgdistribution.txt") as f:
         for line in f:
             ## get the mapDamage version from the first line of the lgdistribution.txt file
@@ -351,5 +385,4 @@ def parse_mapdamage_results(mapdamage_result_dir, results_basename, standardise_
         mapdamage_results["metadata"] = pd.DataFrame.from_dict(
             metadata, orient="index", columns=["value"]
         )
-
     return mapdamage_results
