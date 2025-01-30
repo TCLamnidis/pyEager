@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-VERSION = "0.1.5.0"
+VERSION = "0.1.6.0"
 setup(
     name="pyEager",
     packages=["pyEager"],
@@ -17,6 +17,7 @@ setup(
     python_requires=">=3.6",
     install_requires=[
         "pandas",
+        "numpy",
     ],
     classifiers=[
         "Development Status :: 3 - Alpha",
